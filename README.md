@@ -4,7 +4,7 @@ Live Base Sepolia DEX front end. Uniswap V2-style swap and ERC-20 LP. No farms. 
 
 **Live UI:** [sepolia.quickai.build](https://sepolia.quickai.build)
 
-The Rails for an Agentic Economy. Standing builder desk so a human or an agent with a normal wallet can fund a pair and swap without minting a Uniswap V3 position NFT. Advertising venue for [inferproof.one](https://inferproof.one) (IP1) and Quick AI x402 services.
+Standing builder desk so a human or an agent with a normal wallet can fund a pair and swap without minting a Uniswap V3 position NFT.
 
 USDCq stands in for USDC. NVDAq stands in for B20. Same two clicks on mainnet.
 
@@ -37,7 +37,7 @@ Explorers:
 
 ## What this is not
 
-Not a token launch. Not a farm. Testnet placeholders only. AWAL / CDP validation will not price these mocks. That is expected. An x402 access rail on this desk is planned after Mandate, not in this repo yet.
+Not a token launch. Not a farm. Testnet placeholders only. Dummy assets have no oracle price, so hosted agent wallets that require a valuation will not treat them as inventory. That is expected.
 
 ## How the UI works
 
