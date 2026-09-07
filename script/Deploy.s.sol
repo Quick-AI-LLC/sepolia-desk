@@ -15,14 +15,10 @@ contract Deploy is Script {
         uint256 pk = vm.envUint("PRIVATE_KEY");
         address deployer = vm.addr(pk);
 
-        uint256 usdcqLiquidity = 50_000 * 1e6;
-        uint256 nvdaqLiquidity = 250 * 1e18;
-        uint256 extraMint = 10;
-
         vm.startBroadcast(pk);
 
-        MockToken usdcq = new MockToken("Quick AI USDCq", "USDCq", 6, usdcqLiquidity * extraMint);
-        MockToken nvdaq = new MockToken("Quick AI NVDAq", "NVDAq", 18, nvdaqLiquidity * extraMint);
+        MockToken usdcq = new MockToken("Quick AI USDCq", "USDCq", 6, 500_000 * 1e6);
+        MockToken nvdaq = new MockToken("Quick AI NVDAq", "NVDAq", 18, 2_500 * 1e18);
 
         QaiFactory factory = new QaiFactory(TREASURY);
         QaiRouter router = new QaiRouter(address(factory), WETH);
@@ -30,19 +26,20 @@ contract Deploy is Script {
         usdcq.approve(address(router), type(uint256).max);
         nvdaq.approve(address(router), type(uint256).max);
 
-        (uint256 amountA, uint256 amountB, uint256 liquidity) = router.addLiquidity(
+        // Seed 50,000 USDCq + 250 NVDAq. Constructor minted 10x so the
+        // deployer keeps inventory for the on-camera swap.
+        router.addLiquidity(
             address(usdcq),
             address(nvdaq),
-            usdcqLiquidity,
-            nvdaqLiquidity,
-            usdcqLiquidity,
-            nvdaqLiquidity,
+            50_000 * 1e6,
+            250 * 1e18,
+            50_000 * 1e6,
+            250 * 1e18,
             deployer,
             block.timestamp + 1 hours
         );
 
         address pair = factory.getPair(address(usdcq), address(nvdaq));
-
         vm.stopBroadcast();
 
         console2.log("deployer", deployer);
@@ -51,8 +48,5 @@ contract Deploy is Script {
         console2.log("factory ", address(factory));
         console2.log("router  ", address(router));
         console2.log("pair    ", pair);
-        console2.log("seedA   ", amountA);
-        console2.log("seedB   ", amountB);
-        console2.log("lp      ", liquidity);
     }
 }
