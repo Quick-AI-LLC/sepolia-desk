@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Quick AI Sepolia Desk</title>
+  <style>
+    :root {
+      --navy: #001F3F;
+      --cyan: #00BFFF;
+      --silver: #C0C0C0;
+      --ink: #E8F4FF;
+      --panel: #062844;
+      --line: #13406a;
+    }
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      min-height: 100%;
+      background: radial-gradient(1200px 600px at 10% -10%, #06325a 0%, var(--navy) 55%);
+      color: var(--ink);
+      font-family: Inter, ui-sans-serif, system-ui, Segoe UI, sans-serif;
+    }
+    a { color: var(--cyan); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--line);
+    }
+    .brand { font-weight: 700; letter-spacing: 0.04em; }
+    .brand span { color: var(--cyan); }
+    .tag { color: var(--silver); font-size: 12px; }
+    button, input, select { font: inherit; }
+    button {
+      background: var(--cyan);
+      color: var(--navy);
+      border: 0;
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    button.ghost {
+      background: transparent;
+      color: var(--cyan);
+      border: 1px solid var(--cyan);
+    }
+    main {
+      display: grid;
+      grid-template-columns: 1.4fr 0.8fr;
+      gap: 18px;
+      padding: 18px;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+    @media (max-width: 840px) {
+      main { grid-template-columns: 1fr; padding: 12px; }
+      header { flex-wrap: wrap; }
+    }
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 16px;
+    }
+    .tabs { display: flex; gap: 8px; margin-bottom: 14px; }
+    .tabs button { flex: 1; }
+    .tabs button.active { box-shadow: 0 0 0 2px #001F3F inset; }
+    label { display: block; font-size: 12px; color: var(--silver); margin: 10px 0 6px; }
+    input {
+      width: 100%;
+      background: #021526;
+      color: var(--ink);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 10px;
+    }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .status { margin-top: 12px; font-size: 13px; color: var(--silver); word-break: break-all; min-height: 1.4em; }
+    .metrics dt { color: var(--silver); font-size: 12px; }
+    .metrics dd { margin: 0 0 10px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+    aside h2 { margin: 0 0 8px; font-size: 16px; }
+    aside p, aside li { color: var(--silver); font-size: 14px; line-height: 1.45; }
+    .pill {
+      display: inline-block;
+      border: 1px solid var(--cyan);
+      color: var(--cyan);
+      border-radius: 999px;
+      padding: 2px 8px;
+      font-size: 11px;
+      margin-right: 6px;
+    }
+    footer { text-align: center; color: var(--silver); font-size: 12px; padding: 18px; }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <div class="brand">QUICK AI <span>SEPOLIA DESK</span></div>
+      <div class="tag">Integrate Intelligence · Base Sepolia 84532 · V2 LP only</div>
+    </div>
+    <button class="ghost" id="connectBtn" type="button">Connect wallet</button>
+  </header>
+  <main>
+    <section class="card">
+      <div class="tabs">
+        <button type="button" class="active" data-tab="swap">Swap</button>
+        <button type="button" data-tab="lp">Fund LP</button>
+        <button type="button" data-tab="pos">LP metrics</button>
+      </div>
+      <div id="tab-swap">
+        <label>From</label>
+        <select id="fromTok"></select>
+        <label>Amount in</label>
+        <input id="amountIn" inputmode="decimal" placeholder="100" />
+        <label>To</label>
+        <select id="toTok"></select>
+        <p class="status" id="quoteOut">Quote appears after addresses are pasted into CFG.</p>
+        <button id="swapBtn" type="button">Swap</button>
+      </div>
+      <div id="tab-lp" hidden>
+        <div class="row">
+          <div>
+            <label>USDCq amount</label>
+            <input id="lpA" inputmode="decimal" placeholder="1000" />
+          </div>
+          <div>
+            <label>NVDAq amount</label>
+            <input id="lpB" inputmode="decimal" placeholder="5" />
+          </div>
+        </div>
+        <p class="status">Adds both sides to the USDCq / NVDAq pair. Approve then mint ERC-20 LP. No NFT.</p>
+        <button id="lpBtn" type="button">Add liquidity</button>
+      </div>
+      <div id="tab-pos" hidden>
+        <dl class="metrics" id="metrics">
+          <dt>Pair</dt><dd id="mPair">paste CFG after broadcast</dd>
+          <dt>Reserve USDCq</dt><dd id="mA">-</dd>
+          <dt>Reserve NVDAq</dt><dd id="mB">-</dd>
+          <dt>Your LP tokens</dt><dd id="mLp">-</dd>
+          <dt>Your share</dt><dd id="mShare">-</dd>
+        </dl>
+        <button id="refreshBtn" type="button">Refresh metrics</button>
+      </div>
+      <p class="status" id="log"></p>
+    </section>
+    <aside class="card">
+      <span class="pill">IP1</span><span class="pill">x402</span><span class="pill">testnet</span>
+      <h2>This desk is a builder faucet for LPs</h2>
+      <p>USDCq stands in for USDC. NVDAq stands in for B20. Same two clicks on mainnet.</p>
+      <p><a href="https://inferproof.one" target="_blank" rel="noreferrer">inferproof.one</a> is the paid inference certificate. One million paid inference tokens mint one IP1. Paid usage only. Daily UTC settlement.</p>
+      <ul>
+        <li><a href="https://quickai.build" target="_blank" rel="noreferrer">quickai.build</a></li>
+        <li><a href="https://github.com/Quick-AI-LLC" target="_blank" rel="noreferrer">GitHub</a></li>
+        <li><a href="https://linktr.ee/CDAQAI" target="_blank" rel="noreferrer">linktr.ee/CDAQAI</a></li>
+        <li><a href="https://x.com/CDAQAI" target="_blank" rel="noreferrer">@CDAQAI</a></li>
+      </ul>
+      <p>No farms. No staking. No launchpad. Swap, fund LP, read metrics.</p>
+    </aside>
+  </main>
+  <footer>Quick AI LLC · Sepolia placeholders only · not mainnet inventory</footer>
+  <script src="https://cdn.jsdelivr.net/npm/ethers@6.13.4/dist/ethers.umd.min.js"></script>
+  <script>
+    const CFG = {
+      chainId: 84532,
+      usdcq: "0x0000000000000000000000000000000000000000",
+      nvdaq: "0x0000000000000000000000000000000000000000",
+      factory: "0x0000000000000000000000000000000000000000",
+      router: "0x0000000000000000000000000000000000000000",
+      pair: "0x0000000000000000000000000000000000000000"
+    };
+    const ERC20_ABI = [
+      "function approve(address spender, uint256 value) returns (bool)",
+      "function allowance(address owner, address spender) view returns (uint256)",
+      "function balanceOf(address) view returns (uint256)",
+      "function decimals() view returns (uint8)",
+      "function symbol() view returns (string)"
+    ];
+    const PAIR_ABI = [
+      "function getReserves() view returns (uint112,uint112,uint32)",
+      "function token0() view returns (address)",
+      "function totalSupply() view returns (uint256)",
+      "function balanceOf(address) view returns (uint256)"
+    ];
+    const ROUTER_ABI = [
+      "function addLiquidity(address,address,uint256,uint256,uint256,uint256,address,uint256) returns (uint256,uint256,uint256)",
+      "function swapExactTokensForTokens(uint256,uint256,address[],address,uint256) returns (uint256[])",
+      "function getAmountsOut(uint256,address[]) view returns (uint256[])"
+    ];
+    const $ = (id) => document.getElementById(id);
+    const log = (m) => { $("log").textContent = m; };
+    let provider, signer, account;
+    function configured() {
+      return CFG.router !== "0x0000000000000000000000000000000000000000";
+    }
+    function fillSelects() {
+      const opts = [["USDCq", CFG.usdcq], ["NVDAq", CFG.nvdaq]];
+      ["fromTok", "toTok"].forEach((id) => {
+        $(id).innerHTML = opts.map(([s, a]) => '<option value="' + a + '">' + s + '</option>').join("");
+      });
+      $("toTok").selectedIndex = 1;
+    }
+    async function connect() {
+      if (!window.ethereum) { log("No injected wallet."); return; }
+      provider = new ethers.BrowserProvider(window.ethereum);
+      await provider.send("eth_requestAccounts", []);
+      const net = await provider.getNetwork();
+      if (Number(net.chainId) !== CFG.chainId) {
+        try {
+          await window.ethereum.request({
+            method: "wallet_switchEthereumChain",
+            params: [{ chainId: "0x14a34" }]
+          });
+        } catch (e) {
+          log("Switch wallet to Base Sepolia (84532).");
+          return;
+        }
+        provider = new ethers.BrowserProvider(window.ethereum);
+      }
+      signer = await provider.getSigner();
+      account = await signer.getAddress();
+      $("connectBtn").textContent = account.slice(0, 6) + "..." + account.slice(-4);
+      log("Connected " + account);
+      if (configured()) refresh();
+    }
+    async function quote() {
+      if (!configured() || !provider) return;
+      try {
+        const router = new ethers.Contract(CFG.router, ROUTER_ABI, provider);
+        const from = $("fromTok").value;
+        const to = $("toTok").value;
+        if (from === to) { $("quoteOut").textContent = "Pick two different tokens."; return; }
+        const token = new ethers.Contract(from, ERC20_ABI, provider);
+        const dec = await token.decimals();
+        const amt = ethers.parseUnits($("amountIn").value || "0", dec);
+        if (amt === 0n) { $("quoteOut").textContent = "Enter an amount."; return; }
+        const out = await router.getAmountsOut(amt, [from, to]);
+        const outTok = new ethers.Contract(to, ERC20_ABI, provider);
+        const outDec = await outTok.decimals();
+        const outSym = await outTok.symbol();
+        $("quoteOut").textContent = "Est. out: " + ethers.formatUnits(out[1], outDec) + " " + outSym;
+      } catch (e) {
+        $("quoteOut").textContent = e.shortMessage || e.message || String(e);
+      }
+    }
+    async function ensureAllowance(tokenAddr, amount) {
+      const token = new ethers.Contract(tokenAddr, ERC20_ABI, signer);
+      const current = await token.allowance(account, CFG.router);
+      if (current < amount) {
+        const tx = await token.approve(CFG.router, ethers.MaxUint256);
+        log("Approve " + tx.hash);
+        await tx.wait();
+      }
+    }
+    async function doSwap() {
+      if (!signer) return connect();
+      if (!configured()) { log("Paste CFG addresses first."); return; }
+      const from = $("fromTok").value;
+      const to = $("toTok").value;
+      const token = new ethers.Contract(from, ERC20_ABI, signer);
+      const dec = await token.decimals();
+      const amt = ethers.parseUnits($("amountIn").value || "0", dec);
+      await ensureAllowance(from, amt);
+      const router = new ethers.Contract(CFG.router, ROUTER_ABI, signer);
+      const deadline = BigInt(Math.floor(Date.now() / 1000) + 600);
+      const tx = await router.swapExactTokensForTokens(amt, 1n, [from, to], account, deadline);
+      log("Swap " + tx.hash);
+      await tx.wait();
+      log("Swap confirmed " + tx.hash);
+      refresh();
+    }
+    async function doLp() {
+      if (!signer) return connect();
+      if (!configured()) { log("Paste CFG addresses first."); return; }
+      const amtA = ethers.parseUnits($("lpA").value || "0", 6);
+      const amtB = ethers.parseUnits($("lpB").value || "0", 18);
+      await ensureAllowance(CFG.usdcq, amtA);
+      await ensureAllowance(CFG.nvdaq, amtB);
+      const router = new ethers.Contract(CFG.router, ROUTER_ABI, signer);
+      const deadline = BigInt(Math.floor(Date.now() / 1000) + 600);
+      const tx = await router.addLiquidity(CFG.usdcq, CFG.nvdaq, amtA, amtB, 1n, 1n, account, deadline);
+      log("Add LP " + tx.hash);
+      await tx.wait();
+      log("LP confirmed " + tx.hash);
+      refresh();
+    }
+    async function refresh() {
+      if (!configured()) return;
+      const read = provider || new ethers.JsonRpcProvider("https://sepolia.base.org");
+      $("mPair").textContent = CFG.pair;
+      try {
+        const pair = new ethers.Contract(CFG.pair, PAIR_ABI, read);
+        const token0 = (await pair.token0()).toLowerCase();
+        const rs = await pair.getReserves();
+        const usdcIs0 = CFG.usdcq.toLowerCase() === token0;
+        const reserveA = usdcIs0 ? rs[0] : rs[1];
+        const reserveB = usdcIs0 ? rs[1] : rs[0];
+        $("mA").textContent = ethers.formatUnits(reserveA, 6);
+        $("mB").textContent = ethers.formatUnits(reserveB, 18);
+        const supply = await pair.totalSupply();
+        if (account) {
+          const lp = await pair.balanceOf(account);
+          $("mLp").textContent = ethers.formatUnits(lp, 18);
+          $("mShare").textContent = supply === 0n ? "0%" : ((Number(lp) / Number(supply)) * 100).toFixed(4) + "%";
+        }
+      } catch (e) {
+        log(e.shortMessage || e.message || String(e));
+      }
+    }
+    document.querySelectorAll(".tabs button").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".tabs button").forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+        ["swap", "lp", "pos"].forEach((t) => {
+          $("tab-" + t).hidden = btn.dataset.tab !== t;
+        });
+      });
+    });
+    $("connectBtn").onclick = connect;
+    $("swapBtn").onclick = doSwap;
+    $("lpBtn").onclick = doLp;
+    $("refreshBtn").onclick = refresh;
+    $("amountIn").addEventListener("input", quote);
+    $("fromTok").addEventListener("change", quote);
+    $("toTok").addEventListener("change", quote);
+    fillSelects();
+    if (!configured()) log("CFG still has zero addresses. Broadcast Deploy.s.sol, then paste the five addresses.");
+  </script>
+</body>
+</html>
