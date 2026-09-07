@@ -26,8 +26,7 @@ contract Deploy is Script {
         usdcq.approve(address(router), type(uint256).max);
         nvdaq.approve(address(router), type(uint256).max);
 
-        // Seed 50,000 USDCq + 250 NVDAq. Constructor minted 10x so the
-        // deployer keeps inventory for the on-camera swap.
+        // Seed 50,000 USDCq + 250 NVDAq. Constructor minted 10x extra inventory.
         router.addLiquidity(
             address(usdcq),
             address(nvdaq),
