@@ -67,11 +67,16 @@
       border-radius: 14px;
       padding: 16px;
     }
+    .pairbar {
+      margin-bottom: 14px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid var(--line);
+    }
     .tabs { display: flex; gap: 8px; margin-bottom: 14px; }
     .tabs button { flex: 1; }
     .tabs button.active { box-shadow: 0 0 0 2px #001F3F inset; }
     label { display: block; font-size: 12px; color: var(--silver); margin: 10px 0 6px; }
-    input {
+    input, select {
       width: 100%;
       background: #021526;
       color: var(--ink);
@@ -79,7 +84,9 @@
       border-radius: 8px;
       padding: 10px;
     }
+    input.mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px; }
     .row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .hint { font-size: 12px; color: var(--cyan); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; min-height: 1.2em; margin-top: 4px; word-break: break-all; }
     .status { margin-top: 12px; font-size: 13px; color: var(--silver); word-break: break-all; min-height: 1.4em; }
     .metrics dt { color: var(--silver); font-size: 12px; }
     .metrics dd { margin: 0 0 10px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
@@ -107,40 +114,56 @@
   </header>
   <main>
     <section class="card">
+      <div class="pairbar">
+        <p class="status" style="margin-top:0">Paste any two ERC-20s. First add-liquidity creates the pair on this factory. No V3 NFT.</p>
+        <label>Token A</label>
+        <input class="mono" id="tokA" spellcheck="false" placeholder="0x…" />
+        <div class="hint" id="metaA"></div>
+        <label>Token B</label>
+        <input class="mono" id="tokB" spellcheck="false" placeholder="0x…" />
+        <div class="hint" id="metaB"></div>
+        <label>Pair (optional — paste to fill tokens)</label>
+        <input class="mono" id="pairIn" spellcheck="false" placeholder="0x…" />
+        <div class="row" style="margin-top:10px">
+          <button class="ghost" id="loadPairBtn" type="button">Load pair</button>
+          <button class="ghost" id="lookupPairBtn" type="button">Look up pair</button>
+        </div>
+      </div>
       <div class="tabs">
         <button type="button" class="active" data-tab="swap">Swap</button>
         <button type="button" data-tab="lp">Fund LP</button>
         <button type="button" data-tab="pos">LP metrics</button>
       </div>
       <div id="tab-swap">
-        <label>From</label>
-        <select id="fromTok"></select>
+        <label>Direction</label>
+        <select id="swapDir">
+          <option value="ab">A → B</option>
+          <option value="ba">B → A</option>
+        </select>
         <label>Amount in</label>
         <input id="amountIn" inputmode="decimal" placeholder="100" />
-        <label>To</label>
-        <select id="toTok"></select>
-        <p class="status" id="quoteOut">Quote appears after addresses are pasted into CFG.</p>
+        <p class="status" id="quoteOut">Quote uses the two token contracts above.</p>
         <button id="swapBtn" type="button">Swap</button>
       </div>
       <div id="tab-lp" hidden>
         <div class="row">
           <div>
-            <label>USDCq amount</label>
+            <label id="lpALabel">Token A amount</label>
             <input id="lpA" inputmode="decimal" placeholder="1000" />
           </div>
           <div>
-            <label>NVDAq amount</label>
+            <label id="lpBLabel">Token B amount</label>
             <input id="lpB" inputmode="decimal" placeholder="5" />
           </div>
         </div>
-        <p class="status">Adds both sides to the USDCq / NVDAq pair. Approve then mint ERC-20 LP. No NFT.</p>
+        <p class="status">Approve both tokens, then mint ERC-20 LP on this router. Creates the pair if factory.getPair is zero.</p>
         <button id="lpBtn" type="button">Add liquidity</button>
       </div>
       <div id="tab-pos" hidden>
         <dl class="metrics" id="metrics">
-          <dt>Pair</dt><dd id="mPair">paste CFG after broadcast</dd>
-          <dt>Reserve USDCq</dt><dd id="mA">-</dd>
-          <dt>Reserve NVDAq</dt><dd id="mB">-</dd>
+          <dt>Pair</dt><dd id="mPair">-</dd>
+          <dt id="mADt">Reserve A</dt><dd id="mA">-</dd>
+          <dt id="mBDt">Reserve B</dt><dd id="mB">-</dd>
           <dt>Your LP tokens</dt><dd id="mLp">-</dd>
           <dt>Your share</dt><dd id="mShare">-</dd>
         </dl>
@@ -149,11 +172,13 @@
       <p class="status" id="log"></p>
     </section>
     <aside class="card">
-      <span class="pill">IP1</span><span class="pill">x402</span><span class="pill">testnet</span>
-      <h2>This desk is a builder faucet for LPs</h2>
-      <p>USDCq stands in for USDC. NVDAq stands in for B20. Same two clicks on mainnet.</p>
+      <span class="pill">InferProof.One</span><span class="pill">IP1</span><span class="pill">x402</span>
+      <h2>A public V2 desk for testnet LPs</h2>
+      <p>Base Sepolia has a Uniswap V3 stack. Funding a pair there mints an NFT. This desk is the V2 hole: paste two ERC-20s, add both sides, hold an ERC-20 LP token, swap. Builders and agents can use it without a Position Manager.</p>
+      <p>The prefilled pair is a worked example for the Mandate film. USDCq stands in for USDC. NVDAq stands in for B20. Same two clicks on mainnet.</p>
       <p><a href="https://inferproof.one" target="_blank" rel="noreferrer">inferproof.one</a> is the paid inference certificate. One million paid inference tokens mint one IP1. Paid usage only. Daily UTC settlement.</p>
       <ul>
+        <li><a href="https://inferproof.one" target="_blank" rel="noreferrer">inferproof.one</a></li>
         <li><a href="https://quickai.build" target="_blank" rel="noreferrer">quickai.build</a></li>
         <li><a href="https://github.com/Quick-AI-LLC" target="_blank" rel="noreferrer">GitHub</a></li>
         <li><a href="https://linktr.ee/CDAQAI" target="_blank" rel="noreferrer">linktr.ee/CDAQAI</a></li>
@@ -162,7 +187,7 @@
       <p>No farms. No staking. No launchpad. Swap, fund LP, read metrics.</p>
     </aside>
   </main>
-  <footer>Quick AI LLC · Sepolia placeholders only · not mainnet inventory</footer>
+  <footer>Quick AI LLC · Base Sepolia 84532 · V2 ERC-20 LP</footer>
   <script src="https://cdn.jsdelivr.net/npm/ethers@6.13.4/dist/ethers.umd.min.js"></script>
   <script>
     const CFG = {
@@ -173,6 +198,7 @@
       router: "0xd610cF391eaDd09F09C1a83020A35d1825c25075",
       pair: "0x2154d212C4f86deD422fA70042A35806506EE66C"
     };
+    const ZERO = "0x0000000000000000000000000000000000000000";
     const ERC20_ABI = [
       "function approve(address spender, uint256 value) returns (bool)",
       "function allowance(address owner, address spender) view returns (uint256)",
@@ -183,6 +209,7 @@
     const PAIR_ABI = [
       "function getReserves() view returns (uint112,uint112,uint32)",
       "function token0() view returns (address)",
+      "function token1() view returns (address)",
       "function totalSupply() view returns (uint256)",
       "function balanceOf(address) view returns (uint256)"
     ];
@@ -191,18 +218,83 @@
       "function swapExactTokensForTokens(uint256,uint256,address[],address,uint256) returns (uint256[])",
       "function getAmountsOut(uint256,address[]) view returns (uint256[])"
     ];
+    const FACTORY_ABI = [
+      "function getPair(address,address) view returns (address)"
+    ];
     const $ = (id) => document.getElementById(id);
     const log = (m) => { $("log").textContent = m; };
     let provider, signer, account;
-    function configured() {
-      return CFG.router !== "0x0000000000000000000000000000000000000000";
+    const metaCache = {};
+    function read() {
+      return provider || new ethers.JsonRpcProvider("https://sepolia.base.org");
     }
-    function fillSelects() {
-      const opts = [["USDCq", CFG.usdcq], ["NVDAq", CFG.nvdaq]];
-      ["fromTok", "toTok"].forEach((id) => {
-        $(id).innerHTML = opts.map(([s, a]) => '<option value="' + a + '">' + s + '</option>').join("");
-      });
-      $("toTok").selectedIndex = 1;
+    function addrOf(id) {
+      const v = ($(id).value || "").trim();
+      return ethers.isAddress(v) ? ethers.getAddress(v) : null;
+    }
+    function tokens() {
+      const a = addrOf("tokA");
+      const b = addrOf("tokB");
+      if (!a || !b) return null;
+      if (a.toLowerCase() === b.toLowerCase()) return null;
+      return { a, b };
+    }
+    function path() {
+      const t = tokens();
+      if (!t) return null;
+      return $("swapDir").value === "ba" ? [t.b, t.a] : [t.a, t.b];
+    }
+    async function tokenMeta(addr) {
+      const key = addr.toLowerCase();
+      if (metaCache[key]) return metaCache[key];
+      const c = new ethers.Contract(addr, ERC20_ABI, read());
+      const [symbol, decimals] = await Promise.all([c.symbol(), c.decimals()]);
+      metaCache[key] = { symbol, decimals: Number(decimals) };
+      return metaCache[key];
+    }
+    async function resolveMetas() {
+      const t = tokens();
+      $("metaA").textContent = "";
+      $("metaB").textContent = "";
+      if (!addrOf("tokA") && !addrOf("tokB")) return;
+      try {
+        if (addrOf("tokA")) {
+          const m = await tokenMeta(addrOf("tokA"));
+          $("metaA").textContent = m.symbol + " · " + m.decimals + " decimals";
+          $("lpALabel").textContent = m.symbol + " amount";
+          $("mADt").textContent = "Reserve " + m.symbol;
+        }
+        if (addrOf("tokB")) {
+          const m = await tokenMeta(addrOf("tokB"));
+          $("metaB").textContent = m.symbol + " · " + m.decimals + " decimals";
+          $("lpBLabel").textContent = m.symbol + " amount";
+          $("mBDt").textContent = "Reserve " + m.symbol;
+        }
+      } catch (e) {
+        log(e.shortMessage || e.message || String(e));
+      }
+    }
+    async function lookupPair() {
+      const t = tokens();
+      if (!t) { log("Paste two different token contracts."); return ZERO; }
+      const factory = new ethers.Contract(CFG.factory, FACTORY_ABI, read());
+      const pair = await factory.getPair(t.a, t.b);
+      $("pairIn").value = pair === ZERO ? "" : pair;
+      return pair;
+    }
+    async function loadPair() {
+      const pair = addrOf("pairIn");
+      if (!pair) { log("Paste a pair contract."); return; }
+      try {
+        const c = new ethers.Contract(pair, PAIR_ABI, read());
+        $("tokA").value = await c.token0();
+        $("tokB").value = await c.token1();
+        await resolveMetas();
+        await refresh();
+        log("Loaded " + pair);
+      } catch (e) {
+        log(e.shortMessage || e.message || String(e));
+      }
     }
     async function connect() {
       if (!window.ethereum) { log("No injected wallet."); return; }
@@ -225,24 +317,20 @@
       account = await signer.getAddress();
       $("connectBtn").textContent = account.slice(0, 6) + "..." + account.slice(-4);
       log("Connected " + account);
-      if (configured()) refresh();
+      await resolveMetas();
+      refresh();
     }
     async function quote() {
-      if (!configured() || !provider) return;
+      const p = path();
+      if (!p) { $("quoteOut").textContent = "Paste two different token contracts."; return; }
       try {
-        const router = new ethers.Contract(CFG.router, ROUTER_ABI, provider);
-        const from = $("fromTok").value;
-        const to = $("toTok").value;
-        if (from === to) { $("quoteOut").textContent = "Pick two different tokens."; return; }
-        const token = new ethers.Contract(from, ERC20_ABI, provider);
-        const dec = await token.decimals();
-        const amt = ethers.parseUnits($("amountIn").value || "0", dec);
+        const router = new ethers.Contract(CFG.router, ROUTER_ABI, read());
+        const fromMeta = await tokenMeta(p[0]);
+        const amt = ethers.parseUnits($("amountIn").value || "0", fromMeta.decimals);
         if (amt === 0n) { $("quoteOut").textContent = "Enter an amount."; return; }
-        const out = await router.getAmountsOut(amt, [from, to]);
-        const outTok = new ethers.Contract(to, ERC20_ABI, provider);
-        const outDec = await outTok.decimals();
-        const outSym = await outTok.symbol();
-        $("quoteOut").textContent = "Est. out: " + ethers.formatUnits(out[1], outDec) + " " + outSym;
+        const out = await router.getAmountsOut(amt, p);
+        const toMeta = await tokenMeta(p[1]);
+        $("quoteOut").textContent = "Est. out: " + ethers.formatUnits(out[1], toMeta.decimals) + " " + toMeta.symbol;
       } catch (e) {
         $("quoteOut").textContent = e.shortMessage || e.message || String(e);
       }
@@ -258,16 +346,14 @@
     }
     async function doSwap() {
       if (!signer) return connect();
-      if (!configured()) { log("Paste CFG addresses first."); return; }
-      const from = $("fromTok").value;
-      const to = $("toTok").value;
-      const token = new ethers.Contract(from, ERC20_ABI, signer);
-      const dec = await token.decimals();
-      const amt = ethers.parseUnits($("amountIn").value || "0", dec);
-      await ensureAllowance(from, amt);
+      const p = path();
+      if (!p) { log("Paste two different token contracts."); return; }
+      const fromMeta = await tokenMeta(p[0]);
+      const amt = ethers.parseUnits($("amountIn").value || "0", fromMeta.decimals);
+      await ensureAllowance(p[0], amt);
       const router = new ethers.Contract(CFG.router, ROUTER_ABI, signer);
       const deadline = BigInt(Math.floor(Date.now() / 1000) + 600);
-      const tx = await router.swapExactTokensForTokens(amt, 1n, [from, to], account, deadline);
+      const tx = await router.swapExactTokensForTokens(amt, 1n, p, account, deadline);
       log("Swap " + tx.hash);
       await tx.wait();
       log("Swap confirmed " + tx.hash);
@@ -275,35 +361,54 @@
     }
     async function doLp() {
       if (!signer) return connect();
-      if (!configured()) { log("Paste CFG addresses first."); return; }
-      const amtA = ethers.parseUnits($("lpA").value || "0", 6);
-      const amtB = ethers.parseUnits($("lpB").value || "0", 18);
-      await ensureAllowance(CFG.usdcq, amtA);
-      await ensureAllowance(CFG.nvdaq, amtB);
+      const t = tokens();
+      if (!t) { log("Paste two different token contracts."); return; }
+      const ma = await tokenMeta(t.a);
+      const mb = await tokenMeta(t.b);
+      const amtA = ethers.parseUnits($("lpA").value || "0", ma.decimals);
+      const amtB = ethers.parseUnits($("lpB").value || "0", mb.decimals);
+      await ensureAllowance(t.a, amtA);
+      await ensureAllowance(t.b, amtB);
       const router = new ethers.Contract(CFG.router, ROUTER_ABI, signer);
       const deadline = BigInt(Math.floor(Date.now() / 1000) + 600);
-      const tx = await router.addLiquidity(CFG.usdcq, CFG.nvdaq, amtA, amtB, 1n, 1n, account, deadline);
+      const tx = await router.addLiquidity(t.a, t.b, amtA, amtB, 1n, 1n, account, deadline);
       log("Add LP " + tx.hash);
       await tx.wait();
-      log("LP confirmed " + tx.hash);
+      const pair = await lookupPair();
+      log("LP confirmed " + tx.hash + (pair && pair !== ZERO ? " pair " + pair : ""));
       refresh();
     }
     async function refresh() {
-      if (!configured()) return;
-      const read = provider || new ethers.JsonRpcProvider("https://sepolia.base.org");
-      $("mPair").textContent = CFG.pair;
+      const t = tokens();
+      const readP = read();
+      let pair = addrOf("pairIn");
       try {
-        const pair = new ethers.Contract(CFG.pair, PAIR_ABI, read);
-        const token0 = (await pair.token0()).toLowerCase();
-        const rs = await pair.getReserves();
-        const usdcIs0 = CFG.usdcq.toLowerCase() === token0;
-        const reserveA = usdcIs0 ? rs[0] : rs[1];
-        const reserveB = usdcIs0 ? rs[1] : rs[0];
-        $("mA").textContent = ethers.formatUnits(reserveA, 6);
-        $("mB").textContent = ethers.formatUnits(reserveB, 18);
-        const supply = await pair.totalSupply();
+        if (!pair || pair === ZERO) {
+          pair = t ? await new ethers.Contract(CFG.factory, FACTORY_ABI, readP).getPair(t.a, t.b) : null;
+          if (pair && pair !== ZERO) $("pairIn").value = pair;
+        }
+        $("mPair").textContent = pair && pair !== ZERO ? pair : "no pair yet — add liquidity to create it";
+        if (!pair || pair === ZERO) {
+          $("mA").textContent = "-";
+          $("mB").textContent = "-";
+          $("mLp").textContent = "-";
+          $("mShare").textContent = "-";
+          return;
+        }
+        const c = new ethers.Contract(pair, PAIR_ABI, readP);
+        const token0 = (await c.token0()).toLowerCase();
+        const rs = await c.getReserves();
+        if (!t) return;
+        const aIs0 = t.a.toLowerCase() === token0;
+        const reserveA = aIs0 ? rs[0] : rs[1];
+        const reserveB = aIs0 ? rs[1] : rs[0];
+        const ma = await tokenMeta(t.a);
+        const mb = await tokenMeta(t.b);
+        $("mA").textContent = ethers.formatUnits(reserveA, ma.decimals);
+        $("mB").textContent = ethers.formatUnits(reserveB, mb.decimals);
+        const supply = await c.totalSupply();
         if (account) {
-          const lp = await pair.balanceOf(account);
+          const lp = await c.balanceOf(account);
           $("mLp").textContent = ethers.formatUnits(lp, 18);
           $("mShare").textContent = supply === 0n ? "0%" : ((Number(lp) / Number(supply)) * 100).toFixed(4) + "%";
         }
@@ -318,17 +423,33 @@
         ["swap", "lp", "pos"].forEach((t) => {
           $("tab-" + t).hidden = btn.dataset.tab !== t;
         });
+        if (btn.dataset.tab === "pos") refresh();
+        if (btn.dataset.tab === "swap") quote();
       });
     });
+    $("tokA").value = CFG.usdcq;
+    $("tokB").value = CFG.nvdaq;
+    $("pairIn").value = CFG.pair;
     $("connectBtn").onclick = connect;
     $("swapBtn").onclick = doSwap;
     $("lpBtn").onclick = doLp;
     $("refreshBtn").onclick = refresh;
+    $("loadPairBtn").onclick = loadPair;
+    $("lookupPairBtn").onclick = async () => {
+      const pair = await lookupPair();
+      log(pair && pair !== ZERO ? "Pair " + pair : "No pair yet. Fund LP to create one.");
+      if (pair && pair !== ZERO) refresh();
+    };
     $("amountIn").addEventListener("input", quote);
-    $("fromTok").addEventListener("change", quote);
-    $("toTok").addEventListener("change", quote);
-    fillSelects();
-    if (!configured()) log("CFG still has zero addresses. Broadcast Deploy.s.sol, then paste the five addresses.");
+    $("swapDir").addEventListener("change", quote);
+    ["tokA", "tokB"].forEach((id) => {
+      $(id).addEventListener("change", async () => {
+        await resolveMetas();
+        quote();
+      });
+    });
+    resolveMetas().then(quote);
+    log("Venue router " + CFG.router.slice(0, 8) + "… · paste any two ERC-20s, or use the prefilled example pair.");
   </script>
 </body>
 </html>
