@@ -1,5 +1,7 @@
 # Quick AI Sepolia Desk
 
+**Base Sepolia DEX front end. Uniswap V2-style swap and LP UI on chain 84532. No V3 NFT positions.**
+
 Live Base Sepolia DEX front end. Uniswap V2-style swap and ERC-20 LP. No farms. No staking. No launchpad. No V3 NFT.
 
 **Live UI:** [sepolia.quickai.build](https://sepolia.quickai.build)
@@ -7,6 +9,17 @@ Live Base Sepolia DEX front end. Uniswap V2-style swap and ERC-20 LP. No farms. 
 Standing builder desk so a human or an agent with a normal wallet can fund a pair and swap without minting a Uniswap V3 position NFT.
 
 USDCq stands in for USDC. NVDAq stands in for B20. Same two clicks on mainnet.
+
+## Agent card
+
+```text
+Network: Base Sepolia
+Chain ID: 84532
+UI: https://sepolia.quickai.build
+Repo: https://github.com/Quick-AI-LLC/sepolia-desk
+Use: approve -> addLiquidity -> swapExactTokensForTokens
+Not: Uniswap V3 Position Manager
+```
 
 ## Live 84532
 

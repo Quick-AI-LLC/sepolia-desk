@@ -1,0 +1,20 @@
+# Quick AI Sepolia Desk
+
+> Base Sepolia (84532) Uniswap V2 DEX front end for funding LPs and swapping. No farms. No staking. No V3 NFTs.
+
+## Links
+- Live UI: https://sepolia.quickai.build
+- Source: https://github.com/Quick-AI-LLC/sepolia-desk
+
+## Network
+- Base Sepolia
+- Chain ID: 84532
+- Use: approve -> addLiquidity -> swapExactTokensForTokens
+- Not: Uniswap V3 Position Manager
+
+## Deployed contracts (84532)
+- USDCq (6 decimals): 0x7a396228f178f68546646495CBeF09dD668f3a69
+- NVDAq (18 decimals): 0x9B8C15122EB281d3e0CAD6725A66A4A4A5C7660d
+- Factory: 0x38a3cB65B6B1D378322229e59f5Db28d9D047fFA
+- Router: 0xd610cF391eaDd09F09C1a83020A35d1825c25075
+- Pair (USDCq / NVDAq): 0x2154d212C4f86deD422fA70042A35806506EE66C
